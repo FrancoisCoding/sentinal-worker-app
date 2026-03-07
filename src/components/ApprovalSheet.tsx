@@ -24,20 +24,23 @@ export function ApprovalSheet({ approval, onDismiss }: Props) {
         decision,
       });
 
+      // Serialize SignedPayload to JSON string for storage
+      const signedJson = JSON.stringify(signed);
+
       await supabase
         .from("approval_requests")
         .update({
           status: decision,
           resolved_at: new Date().toISOString(),
-          signed_response: signed,
+          signed_response: signedJson,
         })
         .eq("id", approval.id);
 
-      // Also update task status in task_events so desktop reacts
+      // Notify desktop via task_events
       await supabase.from("task_events").insert({
         task_id: approval.task_id,
         event_type: "approval_response",
-        payload: { decision, signed },
+        payload: { decision, signed_response: signedJson },
       });
     } catch (e: any) {
       Alert.alert("Error", e?.message ?? "Failed to send response");

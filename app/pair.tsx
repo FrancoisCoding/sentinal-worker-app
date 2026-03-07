@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { pairedDeviceIdAtom, pairedDeviceNameAtom, isConnectedAtom } from "@/lib/store";
 import { supabase, isConfigured } from "@/lib/supabase";
-import { getOrCreatePhoneId } from "@/lib/crypto";
+import { getOrCreatePhoneId, getPublicKey } from "@/lib/crypto";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 
@@ -65,11 +65,12 @@ export default function PairScreen() {
       }
 
       const phoneId = await getOrCreatePhoneId();
+      const publicKey = await getPublicKey();
 
-      // Insert pairing request into Supabase
+      // Insert pairing request into Supabase with real Ed25519 public key
       const { error } = await supabase.from("pairing_requests").insert({
         device_id: deviceId,
-        phone_public_key: phoneId, // Phase 3: replace with real public key
+        phone_public_key: publicKey,
         phone_name: `Phone-${phoneId.slice(0, 8)}`,
         status: "pending",
       });
@@ -85,7 +86,7 @@ export default function PairScreen() {
             event: "UPDATE",
             schema: "public",
             table: "pairing_requests",
-            filter: `phone_public_key=eq.${phoneId}`,
+            filter: `phone_public_key=eq.${publicKey}`,
           },
           async (payload) => {
             const req = payload.new as { status: string };

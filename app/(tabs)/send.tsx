@@ -49,7 +49,6 @@ export default function SendScreen() {
         type: taskType,
         command: command.trim(),
         project_path: projectPath.trim() || null,
-        phone_id: phoneId,
       });
 
       const { data, error } = await supabase
@@ -60,7 +59,8 @@ export default function SendScreen() {
           command: command.trim(),
           project_path: projectPath.trim() || null,
           status: "queued",
-          signed_payload: signed,
+          // Serialized SignedPayload — Rust backend verifies Ed25519 + nonce + timestamp
+          signed_payload: JSON.stringify(signed),
         })
         .select()
         .single();
