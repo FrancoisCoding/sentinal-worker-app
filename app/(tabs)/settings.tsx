@@ -12,6 +12,8 @@ import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
 import * as SecureStore from "expo-secure-store";
 import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom } from "@/lib/store";
+import { getClient } from "@/lib/supabase";
+import { getPublicKey } from "@/lib/crypto";
 import { router } from "expo-router";
 
 export default function SettingsScreen() {
@@ -30,6 +32,18 @@ export default function SettingsScreen() {
           text: "Unlink",
           style: "destructive",
           onPress: async () => {
+            // Delete from Supabase paired_phones
+            try {
+              const publicKey = await getPublicKey();
+              const sb = getClient();
+              await sb
+                .from("paired_phones")
+                .delete()
+                .eq("phone_public_key", publicKey);
+            } catch (e) {
+              console.error("Failed to delete from Supabase:", e);
+            }
+            // Clear local state
             await SecureStore.deleteItemAsync("sentinal_paired_device_id");
             await SecureStore.deleteItemAsync("sentinal_paired_device_name");
             setDeviceId(null);
@@ -96,12 +110,6 @@ export default function SettingsScreen() {
             {isConnected ? "Relink trusted device" : "Scan desktop QR code"}
           </Text>
         </Pressable>
-        {isConnected && (
-          <Pressable style={styles.unlinkButton} onPress={handleUnlink}>
-            <Ionicons name="close-circle-outline" size={16} color="#f87171" />
-            <Text style={styles.unlinkButtonText}>Unlink desktop</Text>
-          </Pressable>
-        )}
       </Animated.View>
 
       <Section title="Link status">
@@ -111,6 +119,12 @@ export default function SettingsScreen() {
           <InfoRow label="Status" value={isConnected ? "Linked" : "Awaiting link"} />
           {deviceId && <InfoRow label="Desktop ID" value={deviceId} mono />}
         </View>
+        <Pressable style={styles.unlinkButton} onPress={handleUnlink}>
+          <Ionicons name="close-circle-outline" size={16} color="#f87171" />
+          <Text style={styles.unlinkButtonText}>
+            {isConnected ? "Unlink desktop" : "Clear pairing data"}
+          </Text>
+        </Pressable>
       </Section>
 
       {!isConnected && (
