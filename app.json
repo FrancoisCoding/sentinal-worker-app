@@ -13,7 +13,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.sentinalworker.app"
@@ -33,13 +35,15 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "expo-camera",
       [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
           "color": "#5865F2"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

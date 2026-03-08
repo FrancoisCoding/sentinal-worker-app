@@ -7,13 +7,13 @@
  *   so the desktop can reject replays and stale messages.
  */
 import * as SecureStore from "expo-secure-store";
-import { randomUUID, getRandomBytes } from "expo-crypto";
 import nacl from "tweetnacl";
 import { encodeBase64, decodeBase64 } from "tweetnacl-util";
 
-// Shim tweetnacl's PRNG to use expo-crypto secure randomness (CSPRNG)
+// Shim tweetnacl's PRNG to use Web Crypto CSPRNG (available in RN 0.71+)
 nacl.setPRNG((x: Uint8Array, n: number) => {
-  const bytes = getRandomBytes(n);
+  const bytes = new Uint8Array(n);
+  globalThis.crypto.getRandomValues(bytes);
   for (let i = 0; i < n; i++) x[i] = bytes[i];
 });
 
@@ -26,7 +26,7 @@ const PUBLIC_KEY_KEY = "sentinal_ed25519_public";
 export async function getOrCreatePhoneId(): Promise<string> {
   let id = await SecureStore.getItemAsync(PHONE_ID_KEY);
   if (!id) {
-    id = randomUUID();
+    id = globalThis.crypto.randomUUID();
     await SecureStore.setItemAsync(PHONE_ID_KEY, id);
   }
   return id;
@@ -93,7 +93,7 @@ export async function signPayload(
 
   const messageObj = {
     ...payload,
-    nonce: randomUUID(),
+    nonce: globalThis.crypto.randomUUID(),
     timestamp: Math.floor(Date.now() / 1000),
     phone_id: phoneId,
   };
