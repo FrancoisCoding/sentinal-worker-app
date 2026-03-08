@@ -1,28 +1,48 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Pressable, Text } from "react-native";
+import { router } from "expo-router";
+
+export const unstable_settings = {
+  initialRouteName: "settings",
+};
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: "#0a0a0a",
-          borderTopColor: "#1a1a1a",
-          height: 60,
+          backgroundColor: "#08111f",
+          borderTopColor: "#162133",
+          height: 74,
+          paddingTop: 10,
+          paddingBottom: 10,
         },
-        tabBarActiveTintColor: "#5865F2",
-        tabBarInactiveTintColor: "#444",
-        tabBarLabelStyle: { fontSize: 10, fontFamily: "monospace" },
-        headerStyle: { backgroundColor: "#0a0a0a" },
-        headerTintColor: "#e5e5e5",
-        headerTitleStyle: { fontFamily: "monospace", fontSize: 14 },
+        tabBarActiveTintColor: "#7dd3fc",
+        tabBarInactiveTintColor: "#6b7a92",
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        headerStyle: { backgroundColor: "#08111f" },
+        headerShadowVisible: false,
+        headerTintColor: "#f8fafc",
+        headerTitleStyle: { fontSize: 18, fontWeight: "600" },
+        sceneStyle: { backgroundColor: "#020817" },
       }}
     >
       <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Trusted device",
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="shield-checkmark-outline" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
-          title: "Tasks",
+          title: "Operations",
           tabBarIcon: ({ color }) => (
-            <TabIcon label="⚡" color={color} />
+            <TabIcon name="grid-outline" color={color} />
           ),
           headerRight: () => <PairButton />,
         }}
@@ -30,18 +50,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="send"
         options={{
-          title: "Send",
+          title: "Run task",
           tabBarIcon: ({ color }) => (
-            <TabIcon label="+" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => (
-            <TabIcon label="⚙" color={color} />
+            <TabIcon name="add-circle-outline" color={color} />
           ),
         }}
       />
@@ -49,22 +60,27 @@ export default function TabLayout() {
   );
 }
 
-import { Text, TouchableOpacity } from "react-native";
-import { router } from "expo-router";
-
-function TabIcon({ label, color }: { label: string; color: string }) {
-  return <Text style={{ fontSize: 18, color }}>{label}</Text>;
+function TabIcon({ name, color }: { name: keyof typeof Ionicons.glyphMap; color: string }) {
+  return <Ionicons name={name} size={20} color={color} />;
 }
 
 function PairButton() {
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => router.push("/pair")}
-      style={{ marginRight: 16 }}
+      style={{
+        marginRight: 16,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: "#1e293b",
+        backgroundColor: "#0f172a",
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+      }}
     >
-      <Text style={{ color: "#5865F2", fontSize: 12, fontFamily: "monospace" }}>
-        Pair
+      <Text style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>
+        Link device
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }

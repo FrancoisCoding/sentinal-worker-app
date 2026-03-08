@@ -7,13 +7,17 @@
  *   so the desktop can reject replays and stale messages.
  */
 import * as SecureStore from "expo-secure-store";
+import * as ExpoCrypto from "expo-crypto";
 import nacl from "tweetnacl";
 import { encodeBase64, decodeBase64 } from "tweetnacl-util";
 
-// Shim tweetnacl's PRNG to use Web Crypto CSPRNG (available in RN 0.71+)
+function getSecureRandomBytes(length: number) {
+  return ExpoCrypto.getRandomBytes(length);
+}
+
+// Shim tweetnacl's PRNG to use Expo Crypto CSPRNG.
 nacl.setPRNG((x: Uint8Array, n: number) => {
-  const bytes = new Uint8Array(n);
-  globalThis.crypto.getRandomValues(bytes);
+  const bytes = getSecureRandomBytes(n);
   for (let i = 0; i < n; i++) x[i] = bytes[i];
 });
 
@@ -21,12 +25,29 @@ const PHONE_ID_KEY = "sentinal_phone_id";
 const PRIVATE_KEY_KEY = "sentinal_ed25519_private";
 const PUBLIC_KEY_KEY = "sentinal_ed25519_public";
 
+function createUuid() {
+  const bytes = getSecureRandomBytes(16);
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20),
+  ].join("-");
+}
+
 // ─── Device identity ─────────────────────────────────────────────────────────
 
 export async function getOrCreatePhoneId(): Promise<string> {
   let id = await SecureStore.getItemAsync(PHONE_ID_KEY);
   if (!id) {
-    id = globalThis.crypto.randomUUID();
+    id = createUuid();
     await SecureStore.setItemAsync(PHONE_ID_KEY, id);
   }
   return id;
@@ -93,7 +114,7 @@ export async function signPayload(
 
   const messageObj = {
     ...payload,
-    nonce: globalThis.crypto.randomUUID(),
+    nonce: createUuid(),
     timestamp: Math.floor(Date.now() / 1000),
     phone_id: phoneId,
   };
