@@ -97,7 +97,28 @@ export default function PairScreen() {
       if (error) throw error;
       const requestId = (insertedRows as { id: string }).id;
 
-      // Subscribe to pairing_requests by row ID (avoids REPLICA IDENTITY FULL requirement)
+      let resolved = false;
+
+      async function handleApproval() {
+        if (resolved) return;
+        resolved = true;
+        await SecureStore.setItemAsync(PAIRED_DEVICE_KEY, deviceId!);
+        await SecureStore.setItemAsync(PAIRED_NAME_KEY, deviceName);
+        setDeviceId(deviceId);
+        setDeviceName(deviceName);
+        setIsConnected(true);
+        setFeedback(`Trusted device linked to ${deviceName}.`);
+        setTimeout(() => router.back(), 900);
+      }
+
+      function handleRejection() {
+        if (resolved) return;
+        resolved = true;
+        setFeedback("The desktop rejected the pairing request.");
+        setScanned(false);
+      }
+
+      // Realtime subscription (instant if Realtime is enabled on the table)
       const channel = sb
         .channel(`pairing-${phoneId}`)
         .on(
@@ -112,26 +133,41 @@ export default function PairScreen() {
             const req = payload.new as { status: string };
             if (req.status === "approved") {
               sb.removeChannel(channel);
-              await SecureStore.setItemAsync(PAIRED_DEVICE_KEY, deviceId);
-              await SecureStore.setItemAsync(PAIRED_NAME_KEY, deviceName);
-              setDeviceId(deviceId);
-              setDeviceName(deviceName);
-              setIsConnected(true);
-              setFeedback(`Trusted device linked to ${deviceName}.`);
-              setTimeout(() => router.back(), 900);
+              await handleApproval();
             } else if (req.status === "rejected") {
               sb.removeChannel(channel);
-              setFeedback("The desktop rejected the pairing request.");
-              setScanned(false);
+              handleRejection();
             }
           }
         )
         .subscribe();
 
+      // Poll every 3s as fallback (Realtime may not be enabled on the table)
+      const pollInterval = setInterval(async () => {
+        if (resolved) { clearInterval(pollInterval); return; }
+        try {
+          const { data: row } = await sb
+            .from("pairing_requests")
+            .select("status")
+            .eq("id", requestId)
+            .single();
+          if (row?.status === "approved") {
+            clearInterval(pollInterval);
+            sb.removeChannel(channel);
+            await handleApproval();
+          } else if (row?.status === "rejected") {
+            clearInterval(pollInterval);
+            sb.removeChannel(channel);
+            handleRejection();
+          }
+        } catch {}
+      }, 3000);
+
       // Auto-cancel after 60 seconds
       setTimeout(() => {
+        if (resolved) return;
+        clearInterval(pollInterval);
         sb.removeChannel(channel);
-        if (!scanned) return;
         setFeedback("Pairing request timed out. Try scanning again.");
         setScanned(false);
       }, 60_000);
