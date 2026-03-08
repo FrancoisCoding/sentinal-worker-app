@@ -1,15 +1,32 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import "react-native-url-polyfill/auto";
 
-// Values injected via app.json extra or environment
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
+let _client: SupabaseClient | null = null;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession: false },
-  realtime: { params: { eventsPerSecond: 20 } },
-});
+/**
+ * Initialize (or re-initialize) the Supabase client with new credentials.
+ * Called once during app load after reading from SecureStore, and again
+ * whenever the user updates credentials in Settings.
+ */
+export function configure(url: string, key: string): void {
+  if (_client) {
+    _client.removeAllChannels();
+  }
+  _client = createClient(url, key, {
+    auth: { persistSession: false },
+    realtime: { params: { eventsPerSecond: 20 } },
+  });
+}
+
+/**
+ * Returns the active Supabase client.
+ * Only call this after the connection gate has confirmed credentials exist.
+ */
+export function getClient(): SupabaseClient {
+  if (!_client) throw new Error("Supabase not configured");
+  return _client;
+}
 
 export function isConfigured(): boolean {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  return _client !== null;
 }

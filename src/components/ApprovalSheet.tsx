@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { supabase } from "@/lib/supabase";
+import { getClient } from "@/lib/supabase";
 import type { ApprovalRequest } from "@/lib/schemas";
 import { signPayload } from "@/lib/crypto";
 
@@ -27,7 +27,7 @@ export function ApprovalSheet({ approval, onDismiss }: Props) {
       // Serialize SignedPayload to JSON string for storage
       const signedJson = JSON.stringify(signed);
 
-      await supabase
+      await getClient()
         .from("approval_requests")
         .update({
           status: decision,
@@ -37,7 +37,7 @@ export function ApprovalSheet({ approval, onDismiss }: Props) {
         .eq("id", approval.id);
 
       // Notify desktop via task_events
-      await supabase.from("task_events").insert({
+      await getClient().from("task_events").insert({
         task_id: approval.task_id,
         event_type: "approval_response",
         payload: { decision, signed_response: signedJson },

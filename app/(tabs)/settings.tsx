@@ -7,8 +7,9 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import { useAtom } from "jotai";
-import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom } from "@/lib/store";
+import { useAtom, useSetAtom } from "jotai";
+import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom, supabaseReadyAtom } from "@/lib/store";
+import { configure } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
@@ -21,6 +22,7 @@ export default function SettingsScreen() {
   const [deviceId] = useAtom(pairedDeviceIdAtom);
   const [deviceName] = useAtom(pairedDeviceNameAtom);
   const [isConnected] = useAtom(isConnectedAtom);
+  const setReady = useSetAtom(supabaseReadyAtom);
 
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
@@ -37,11 +39,14 @@ export default function SettingsScreen() {
   }, []);
 
   async function handleSave() {
-    await SecureStore.setItemAsync(SUPABASE_URL_KEY, supabaseUrl);
-    await SecureStore.setItemAsync(SUPABASE_KEY_KEY, supabaseKey);
+    await SecureStore.setItemAsync(SUPABASE_URL_KEY, supabaseUrl.trim());
+    await SecureStore.setItemAsync(SUPABASE_KEY_KEY, supabaseKey.trim());
+    if (supabaseUrl.trim() && supabaseKey.trim()) {
+      configure(supabaseUrl.trim(), supabaseKey.trim());
+      setReady(true);
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    Alert.alert("Saved", "Restart the app to apply new Supabase credentials.");
   }
 
   return (

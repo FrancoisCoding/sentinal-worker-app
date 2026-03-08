@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { tasksAtom, pairedDeviceIdAtom, phoneIdAtom } from "@/lib/store";
-import { supabase, isConfigured } from "@/lib/supabase";
+import { getClient } from "@/lib/supabase";
 import { signPayload } from "@/lib/crypto";
 import type { TaskType, Task } from "@/lib/schemas";
 
@@ -38,10 +38,6 @@ export default function SendScreen() {
 
   async function handleSubmit() {
     if (!command.trim()) return;
-    if (!isConfigured()) {
-      Alert.alert("Not configured", "Add your Supabase URL and key in Settings.");
-      return;
-    }
 
     setLoading(true);
     try {
@@ -51,7 +47,7 @@ export default function SendScreen() {
         project_path: projectPath.trim() || null,
       });
 
-      const { data, error } = await supabase
+      const { data, error } = await getClient()
         .from("tasks")
         .insert({
           device_id: deviceId,
@@ -59,7 +55,6 @@ export default function SendScreen() {
           command: command.trim(),
           project_path: projectPath.trim() || null,
           status: "queued",
-          // Serialized SignedPayload — Rust backend verifies Ed25519 + nonce + timestamp
           signed_payload: JSON.stringify(signed),
         })
         .select()

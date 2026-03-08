@@ -16,7 +16,7 @@ import {
 } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
-import { supabase, isConfigured } from "@/lib/supabase";
+import { getClient } from "@/lib/supabase";
 import type { Task, TaskStatus, ApprovalRequest } from "@/lib/schemas";
 import { ApprovalSheet } from "@/components/ApprovalSheet";
 
@@ -37,13 +37,11 @@ export default function TasksScreen() {
   const [dailyCost] = useAtom(dailyCostAtom);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Subscribe to Supabase Realtime for task updates
   useEffect(() => {
-    if (!isConfigured()) return;
-
     fetchTasks();
 
-    const channel = supabase
+    const sb = getClient();
+    const channel = sb
       .channel("tasks-realtime")
       .on(
         "postgres_changes",
@@ -83,14 +81,14 @@ export default function TasksScreen() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      sb.removeChannel(channel);
     };
   }, [setTasks, setPending]);
 
   async function fetchTasks() {
     setRefreshing(true);
     try {
-      const { data } = await supabase
+      const { data } = await getClient()
         .from("tasks")
         .select("*")
         .order("created_at", { ascending: false })
@@ -132,7 +130,7 @@ export default function TasksScreen() {
             onPress={() => router.push(`/tasks/${item.id}`)}
           >
             <View style={styles.cardHeader}>
-              <View style={[styles.typeBadge]}>
+              <View style={styles.typeBadge}>
                 <Text style={styles.typeText}>
                   {item.type === "claude" ? "C" : item.type === "codex" ? "X" : "$"}
                 </Text>

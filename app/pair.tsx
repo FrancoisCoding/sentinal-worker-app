@@ -10,7 +10,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useState, useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { pairedDeviceIdAtom, pairedDeviceNameAtom, isConnectedAtom } from "@/lib/store";
-import { supabase, isConfigured } from "@/lib/supabase";
+import { getClient } from "@/lib/supabase";
 import { getOrCreatePhoneId, getPublicKey } from "@/lib/crypto";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
@@ -55,20 +55,12 @@ export default function PairScreen() {
 
       if (!deviceId) throw new Error("Missing device_id in QR code");
 
-      if (!isConfigured()) {
-        Alert.alert(
-          "Supabase not configured",
-          "Add your Supabase URL and key in Settings first.",
-          [{ text: "OK", onPress: () => setScanned(false) }]
-        );
-        return;
-      }
-
       const phoneId = await getOrCreatePhoneId();
       const publicKey = await getPublicKey();
 
       // Insert pairing request into Supabase with real Ed25519 public key
-      const { error } = await supabase.from("pairing_requests").insert({
+      const sb = getClient();
+      const { error } = await sb.from("pairing_requests").insert({
         device_id: deviceId,
         phone_public_key: publicKey,
         phone_name: `Phone-${phoneId.slice(0, 8)}`,
@@ -78,7 +70,7 @@ export default function PairScreen() {
       if (error) throw error;
 
       // Subscribe to pairing_requests for approval
-      const channel = supabase
+      const channel = sb
         .channel(`pairing-${phoneId}`)
         .on(
           "postgres_changes",
@@ -91,7 +83,7 @@ export default function PairScreen() {
           async (payload) => {
             const req = payload.new as { status: string };
             if (req.status === "approved") {
-              supabase.removeChannel(channel);
+              sb.removeChannel(channel);
               await SecureStore.setItemAsync(PAIRED_DEVICE_KEY, deviceId);
               await SecureStore.setItemAsync(PAIRED_NAME_KEY, deviceName);
               setDeviceId(deviceId);
@@ -101,7 +93,7 @@ export default function PairScreen() {
                 { text: "OK", onPress: () => router.back() },
               ]);
             } else if (req.status === "rejected") {
-              supabase.removeChannel(channel);
+              sb.removeChannel(channel);
               Alert.alert("Rejected", "The desktop rejected the pairing request.", [
                 { text: "OK", onPress: () => setScanned(false) },
               ]);
@@ -112,7 +104,7 @@ export default function PairScreen() {
 
       // Auto-cancel after 60 seconds
       setTimeout(() => {
-        supabase.removeChannel(channel);
+        sb.removeChannel(channel);
         if (!scanned) return;
         Alert.alert("Timeout", "Pairing request timed out.", [
           { text: "OK", onPress: () => setScanned(false) },
