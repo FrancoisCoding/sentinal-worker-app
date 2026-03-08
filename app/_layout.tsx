@@ -1,4 +1,3 @@
-import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -28,20 +27,21 @@ export default function RootLayout() {
         <StatusBar style="light" backgroundColor="#0a0a0a" />
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: "#0a0a0a" },
-            headerTintColor: "#e5e5e5",
-            headerTitleStyle: { fontFamily: "monospace", fontSize: 14 },
-            contentStyle: { backgroundColor: "#0a0a0a" },
+            headerStyle: { backgroundColor: "#08111f" },
+            headerShadowVisible: false,
+            headerTintColor: "#f8fafc",
+            headerTitleStyle: { fontSize: 17, fontWeight: "600" },
+            contentStyle: { backgroundColor: "#020817" },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="tasks/[id]"
-            options={{ title: "Task Detail", presentation: "card" }}
+            options={{ title: "Task detail", presentation: "card" }}
           />
           <Stack.Screen
             name="pair"
-            options={{ title: "Pair Desktop", presentation: "modal" }}
+            options={{ title: "Link trusted device", presentation: "modal" }}
           />
         </Stack>
       </QueryClientProvider>
