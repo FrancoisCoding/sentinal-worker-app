@@ -20,7 +20,3 @@ export const pendingApprovalAtom = atom<ApprovalRequest | null>(null);
 
 // Daily cost tracking
 export const dailyCostAtom = atom<number>(0);
-
-// Connection gate state
-export const supabaseReadyAtom = atom<boolean>(false);
-export const appLoadedAtom = atom<boolean>(false);

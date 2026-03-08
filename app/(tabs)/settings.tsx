@@ -1,53 +1,19 @@
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
 } from "react-native";
-import { useAtom, useSetAtom } from "jotai";
-import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom, supabaseReadyAtom } from "@/lib/store";
-import { configure } from "@/lib/supabase";
-import { useState, useEffect } from "react";
-import * as SecureStore from "expo-secure-store";
+import { useAtom } from "jotai";
+import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom } from "@/lib/store";
 import { router } from "expo-router";
-
-const SUPABASE_URL_KEY = "sentinal_supabase_url";
-const SUPABASE_KEY_KEY = "sentinal_supabase_key";
 
 export default function SettingsScreen() {
   const [phoneId] = useAtom(phoneIdAtom);
   const [deviceId] = useAtom(pairedDeviceIdAtom);
   const [deviceName] = useAtom(pairedDeviceNameAtom);
   const [isConnected] = useAtom(isConnectedAtom);
-  const setReady = useSetAtom(supabaseReadyAtom);
-
-  const [supabaseUrl, setSupabaseUrl] = useState("");
-  const [supabaseKey, setSupabaseKey] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      const url = await SecureStore.getItemAsync(SUPABASE_URL_KEY);
-      const key = await SecureStore.getItemAsync(SUPABASE_KEY_KEY);
-      if (url) setSupabaseUrl(url);
-      if (key) setSupabaseKey(key);
-    }
-    load();
-  }, []);
-
-  async function handleSave() {
-    await SecureStore.setItemAsync(SUPABASE_URL_KEY, supabaseUrl.trim());
-    await SecureStore.setItemAsync(SUPABASE_KEY_KEY, supabaseKey.trim());
-    if (supabaseUrl.trim() && supabaseKey.trim()) {
-      configure(supabaseUrl.trim(), supabaseKey.trim());
-      setReady(true);
-    }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
 
   return (
     <ScrollView style={styles.container}>
@@ -64,25 +30,6 @@ export default function SettingsScreen() {
           </Text>
         </TouchableOpacity>
       </Section>
-
-      <Section title="Supabase relay">
-        <Field
-          label="Supabase URL"
-          value={supabaseUrl}
-          onChangeText={setSupabaseUrl}
-          placeholder="https://xxx.supabase.co"
-        />
-        <Field
-          label="Supabase Anon Key"
-          value={supabaseKey}
-          onChangeText={setSupabaseKey}
-          placeholder="eyJ..."
-          secureTextEntry
-        />
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-          <Text style={styles.saveBtnText}>{saved ? "Saved ✓" : "Save"}</Text>
-        </TouchableOpacity>
-      </Section>
     </ScrollView>
   );
 }
@@ -92,36 +39,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {children}
-    </View>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secureTextEntry,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  secureTextEntry?: boolean;
-}) {
-  return (
-    <View style={{ marginBottom: 12 }}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#222"
-        secureTextEntry={secureTextEntry}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
     </View>
   );
 }
@@ -160,25 +77,6 @@ const styles = StyleSheet.create({
   infoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   infoLabel: { color: "#444", fontSize: 11, fontFamily: "monospace" },
   infoValue: { color: "#888", fontSize: 11, maxWidth: "60%" },
-  fieldLabel: { color: "#444", fontSize: 11, fontFamily: "monospace", marginBottom: 6 },
-  input: {
-    backgroundColor: "#111",
-    borderWidth: 1,
-    borderColor: "#222",
-    borderRadius: 8,
-    padding: 12,
-    color: "#e5e5e5",
-    fontFamily: "monospace",
-    fontSize: 13,
-  },
-  saveBtn: {
-    backgroundColor: "#5865F2",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  saveBtnText: { color: "#fff", fontSize: 13, fontFamily: "monospace" },
   outlineBtn: {
     borderWidth: 1,
     borderColor: "#5865F2",
