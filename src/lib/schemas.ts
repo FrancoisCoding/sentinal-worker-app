@@ -10,6 +10,7 @@ export const TaskStatusSchema = z.enum([
 ]);
 
 export const TaskTypeSchema = z.enum(["claude", "codex", "shell"]);
+export const DeviceTypeSchema = z.enum(["ios", "android", "unknown"]);
 
 export const TaskSchema = z.object({
   id: z.string().uuid(),
@@ -37,6 +38,8 @@ export const PairingRequestSchema = z.object({
   device_id: z.string().uuid(),
   phone_public_key: z.string(),
   phone_name: z.string().nullable().optional(),
+  device_type: DeviceTypeSchema.nullable().optional(),
+  location_label: z.string().nullable().optional(),
   status: z.enum(["pending", "approved", "rejected"]),
   created_at: z.string(),
 });
@@ -60,6 +63,7 @@ export const SubmitTaskSchema = z.object({
 export type Task = z.infer<typeof TaskSchema>;
 export type TaskStatus = z.infer<typeof TaskStatusSchema>;
 export type TaskType = z.infer<typeof TaskTypeSchema>;
+export type DeviceType = z.infer<typeof DeviceTypeSchema>;
 export type TaskEvent = z.infer<typeof TaskEventSchema>;
 export type PairingRequest = z.infer<typeof PairingRequestSchema>;
 export type ApprovalRequest = z.infer<typeof ApprovalRequestSchema>;

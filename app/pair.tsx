@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -18,6 +19,30 @@ import { router } from "expo-router";
 
 const PAIRED_DEVICE_KEY = "sentinal_paired_device_id";
 const PAIRED_NAME_KEY = "sentinal_paired_device_name";
+
+function getDeviceType() {
+  if (Platform.OS === "ios") return "ios";
+  if (Platform.OS === "android") return "android";
+  return "unknown";
+}
+
+function getLocationLabel() {
+  const resolvedOptions = Intl.DateTimeFormat().resolvedOptions();
+  const locale = resolvedOptions.locale || null;
+  const timeZone = resolvedOptions.timeZone || null;
+
+  if (locale && timeZone) return `${locale} · ${timeZone}`;
+  if (timeZone) return timeZone;
+  if (locale) return locale;
+  return null;
+}
+
+function getPhoneDisplayName(phoneId: string) {
+  const deviceType = getDeviceType();
+  if (deviceType === "ios") return `iPhone-${phoneId.slice(0, 8)}`;
+  if (deviceType === "android") return `Android-${phoneId.slice(0, 8)}`;
+  return `Phone-${phoneId.slice(0, 8)}`;
+}
 
 export default function PairScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -80,6 +105,9 @@ export default function PairScreen() {
 
       const phoneId = await getOrCreatePhoneId();
       const publicKey = await getPublicKey();
+      const deviceType = getDeviceType();
+      const locationLabel = getLocationLabel();
+      const phoneDisplayName = getPhoneDisplayName(phoneId);
 
       // Insert pairing request into Supabase with real Ed25519 public key
       const sb = getClient();
@@ -88,7 +116,9 @@ export default function PairScreen() {
         .insert({
           device_id: deviceId,
           phone_public_key: publicKey,
-          phone_name: `Phone-${phoneId.slice(0, 8)}`,
+          phone_name: phoneDisplayName,
+          device_type: deviceType,
+          location_label: locationLabel,
           status: "pending",
         })
         .select("id")
