@@ -7,16 +7,39 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert } from "react-native";
 import { useAtom } from "jotai";
 import { useEffect, useRef } from "react";
+import * as SecureStore from "expo-secure-store";
 import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom } from "@/lib/store";
 import { router } from "expo-router";
 
 export default function SettingsScreen() {
   const [phoneId] = useAtom(phoneIdAtom);
-  const [deviceId] = useAtom(pairedDeviceIdAtom);
-  const [deviceName] = useAtom(pairedDeviceNameAtom);
-  const [isConnected] = useAtom(isConnectedAtom);
+  const [deviceId, setDeviceId] = useAtom(pairedDeviceIdAtom);
+  const [deviceName, setDeviceName] = useAtom(pairedDeviceNameAtom);
+  const [isConnected, setIsConnected] = useAtom(isConnectedAtom);
+
+  function handleUnlink() {
+    Alert.alert(
+      "Unlink desktop",
+      "This will remove the trusted device link. You'll need to scan the QR code again to reconnect.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Unlink",
+          style: "destructive",
+          onPress: async () => {
+            await SecureStore.deleteItemAsync("sentinal_paired_device_id");
+            await SecureStore.deleteItemAsync("sentinal_paired_device_name");
+            setDeviceId(null);
+            setDeviceName(null);
+            setIsConnected(false);
+          },
+        },
+      ]
+    );
+  }
   const entrance = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -73,6 +96,12 @@ export default function SettingsScreen() {
             {isConnected ? "Relink trusted device" : "Scan desktop QR code"}
           </Text>
         </Pressable>
+        {isConnected && (
+          <Pressable style={styles.unlinkButton} onPress={handleUnlink}>
+            <Ionicons name="close-circle-outline" size={16} color="#f87171" />
+            <Text style={styles.unlinkButtonText}>Unlink desktop</Text>
+          </Pressable>
+        )}
       </Animated.View>
 
       <Section title="Link status">
@@ -188,6 +217,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   primaryButtonText: { color: "#eff6ff", fontSize: 14, fontWeight: "700" },
+  unlinkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#3b1a1a",
+    backgroundColor: "#1a0a0a",
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+  },
+  unlinkButtonText: { color: "#f87171", fontSize: 13, fontWeight: "600" },
   heroTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700" },
   heroText: { color: "#93a4bd", fontSize: 14, lineHeight: 21 },
   section: { marginBottom: 32 },

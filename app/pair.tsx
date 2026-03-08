@@ -94,83 +94,75 @@ export default function PairScreen() {
         .select("id")
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Insert pairing request error:", error);
+        throw error;
+      }
+      if (!insertedRows || !(insertedRows as any).id) {
+        console.error("Insert returned no data:", insertedRows);
+        throw new Error("Failed to create pairing request — no ID returned");
+      }
       const requestId = (insertedRows as { id: string }).id;
+      setFeedback(`Request sent (${requestId.slice(0, 8)}…). Waiting for desktop approval.`);
 
       let resolved = false;
 
       async function handleApproval() {
         if (resolved) return;
         resolved = true;
-        await SecureStore.setItemAsync(PAIRED_DEVICE_KEY, deviceId!);
-        await SecureStore.setItemAsync(PAIRED_NAME_KEY, deviceName);
-        setDeviceId(deviceId);
-        setDeviceName(deviceName);
-        setIsConnected(true);
-        setFeedback(`Trusted device linked to ${deviceName}.`);
-        setTimeout(() => router.back(), 900);
+        try {
+          await SecureStore.setItemAsync(PAIRED_DEVICE_KEY, deviceId!);
+          await SecureStore.setItemAsync(PAIRED_NAME_KEY, deviceName);
+          setDeviceId(deviceId);
+          setDeviceName(deviceName);
+          setIsConnected(true);
+          setFeedback(`Linked to ${deviceName}!`);
+          setTimeout(() => router.back(), 1200);
+        } catch (e) {
+          console.error("handleApproval error:", e);
+          setFeedback(`Approved but failed to save: ${e}`);
+        }
       }
 
       function handleRejection() {
         if (resolved) return;
         resolved = true;
-        setFeedback("The desktop rejected the pairing request.");
+        setFeedback("Desktop rejected the pairing request.");
         setScanned(false);
       }
 
-      // Realtime subscription (instant if Realtime is enabled on the table)
-      const channel = sb
-        .channel(`pairing-${phoneId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "pairing_requests",
-            filter: `id=eq.${requestId}`,
-          },
-          async (payload) => {
-            const req = payload.new as { status: string };
-            if (req.status === "approved") {
-              sb.removeChannel(channel);
-              await handleApproval();
-            } else if (req.status === "rejected") {
-              sb.removeChannel(channel);
-              handleRejection();
-            }
-          }
-        )
-        .subscribe();
-
-      // Poll every 3s as fallback (Realtime may not be enabled on the table)
+      // Poll every 2s — most reliable method
       const pollInterval = setInterval(async () => {
         if (resolved) { clearInterval(pollInterval); return; }
         try {
-          const { data: row } = await sb
+          const { data: row, error: pollError } = await sb
             .from("pairing_requests")
             .select("status")
             .eq("id", requestId)
             .single();
+          if (pollError) {
+            console.error("Poll error:", pollError);
+            return;
+          }
           if (row?.status === "approved") {
             clearInterval(pollInterval);
-            sb.removeChannel(channel);
             await handleApproval();
           } else if (row?.status === "rejected") {
             clearInterval(pollInterval);
-            sb.removeChannel(channel);
             handleRejection();
           }
-        } catch {}
-      }, 3000);
+        } catch (e) {
+          console.error("Poll exception:", e);
+        }
+      }, 2000);
 
-      // Auto-cancel after 60 seconds
+      // Auto-cancel after 90 seconds
       setTimeout(() => {
         if (resolved) return;
         clearInterval(pollInterval);
-        sb.removeChannel(channel);
         setFeedback("Pairing request timed out. Try scanning again.");
         setScanned(false);
-      }, 60_000);
+      }, 90_000);
     } catch (e: any) {
       setFeedback(e?.message ?? "Failed to pair.");
       setScanned(false);
