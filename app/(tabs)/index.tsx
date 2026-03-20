@@ -21,15 +21,24 @@ import { router } from "expo-router";
 import { getClient } from "@/lib/supabase";
 import type { Task, TaskStatus, ApprovalRequest } from "@/lib/schemas";
 import { ApprovalSheet } from "@/components/ApprovalSheet";
+import { colors, radii, STATUS_COLOR } from "@/lib/theme";
 
-const STATUS_COLOR: Record<TaskStatus, string> = {
-  queued: "#facc15",
-  running: "#60a5fa",
-  waiting_for_approval: "#fb923c",
-  completed: "#4ade80",
-  failed: "#f87171",
-  rejected: "#6b7280",
-};
+function mergeTaskList(nextTasks: Task[]) {
+  const taskMap = new Map<string, Task>();
+
+  for (const task of nextTasks) {
+    taskMap.set(task.id, task);
+  }
+
+  return Array.from(taskMap.values()).sort(
+    (leftTask, rightTask) =>
+      new Date(rightTask.created_at).getTime() - new Date(leftTask.created_at).getTime()
+  );
+}
+
+function upsertTask(previousTasks: Task[], nextTask: Task) {
+  return mergeTaskList([nextTask, ...previousTasks.filter((task) => task.id !== nextTask.id)]);
+}
 
 export default function TasksScreen() {
   const [tasks, setTasks] = useAtom(tasksAtom);
@@ -60,13 +69,9 @@ export default function TasksScreen() {
         { event: "*", schema: "public", table: "tasks" },
         (payload) => {
           if (payload.eventType === "INSERT") {
-            setTasks((prev) => [payload.new as Task, ...prev]);
+            setTasks((previousTasks) => upsertTask(previousTasks, payload.new as Task));
           } else if (payload.eventType === "UPDATE") {
-            setTasks((prev) =>
-              prev.map((t) =>
-                t.id === (payload.new as Task).id ? (payload.new as Task) : t
-              )
-            );
+            setTasks((previousTasks) => upsertTask(previousTasks, payload.new as Task));
           }
         }
       )
@@ -105,7 +110,7 @@ export default function TasksScreen() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
-      if (data) setTasks(data as Task[]);
+      if (data) setTasks(mergeTaskList(data as Task[]));
     } finally {
       setRefreshing(false);
     }
@@ -131,7 +136,7 @@ export default function TasksScreen() {
           ]}
         >
           <View style={styles.heroIconWrap}>
-            <Ionicons name="shield-checkmark-outline" size={28} color="#7dd3fc" />
+            <Ionicons name="shield-checkmark-outline" size={28} color={colors.primary} />
           </View>
           <Text style={styles.heroTitle}>Link your trusted desktop first</Text>
           <Text style={styles.heroText}>
@@ -163,7 +168,7 @@ export default function TasksScreen() {
         </View>
         <View style={styles.heroMeta}>
           <View style={[styles.statusPill, isConnected ? styles.statusOnline : styles.statusOffline]}>
-            <View style={[styles.dot, { backgroundColor: isConnected ? "#34d399" : "#64748b" }]} />
+            <View style={[styles.dot, { backgroundColor: isConnected ? colors.success : colors.mutedForeground }]} />
             <Text style={styles.statusPillText}>
               {isConnected ? deviceName ?? "Trusted device linked" : "No trusted device linked"}
             </Text>
@@ -176,13 +181,13 @@ export default function TasksScreen() {
         data={tasks}
         keyExtractor={(t) => t.id}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={fetchTasks} tintColor="#5865F2" />
+          <RefreshControl refreshing={refreshing} onRefresh={fetchTasks} tintColor={colors.primary} />
         }
         contentContainerStyle={tasks.length === 0 ? styles.empty : undefined}
         ListEmptyComponent={
           <View style={styles.emptyContent}>
             <View style={styles.emptyIconWrap}>
-              <Ionicons name="flash-outline" size={28} color="#7dd3fc" />
+              <Ionicons name="flash-outline" size={28} color={colors.primary} />
             </View>
             <Text style={styles.emptyText}>No tasks yet</Text>
             <Text style={styles.emptyHint}>Use Run task to send work to your linked desktop.</Text>
@@ -232,13 +237,13 @@ function formatTime(iso: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020817", paddingHorizontal: 16, paddingTop: 16 },
+  container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: 16, paddingTop: 16 },
   lockedHero: {
     marginTop: 12,
-    borderRadius: 28,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 24,
     alignItems: "center",
     gap: 14,
@@ -246,64 +251,64 @@ const styles = StyleSheet.create({
   heroIconWrap: {
     height: 72,
     width: 72,
-    borderRadius: 24,
+    borderRadius: radii.container,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderStrong,
   },
   hero: {
     marginBottom: 16,
     gap: 14,
-    borderRadius: 24,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 18,
   },
   heroCopy: { gap: 8 },
-  heroTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700", lineHeight: 26 },
-  heroText: { color: "#93a4bd", fontSize: 14, lineHeight: 21 },
+  heroTitle: { color: colors.foreground, fontSize: 20, fontWeight: "700", lineHeight: 26 },
+  heroText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
   primaryButton: {
     width: "100%",
-    borderRadius: 16,
-    backgroundColor: "#2563eb",
+    borderRadius: radii.interactive,
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     alignItems: "center",
   },
-  primaryButtonText: { color: "#eff6ff", fontSize: 14, fontWeight: "700" },
+  primaryButtonText: { color: colors.primaryForeground, fontSize: 14, fontWeight: "700" },
   secondaryButton: {
     width: "100%",
-    borderRadius: 16,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#1e293b",
-    backgroundColor: "#0f172a",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
     paddingVertical: 14,
     alignItems: "center",
   },
-  secondaryButtonText: { color: "#dbe7f5", fontSize: 14, fontWeight: "600" },
+  secondaryButtonText: { color: colors.foreground, fontSize: 14, fontWeight: "600" },
   heroMeta: { gap: 10 },
   statusPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radii.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  statusOnline: { backgroundColor: "rgba(5, 150, 105, 0.16)", borderWidth: 1, borderColor: "#134e4a" },
-  statusOffline: { backgroundColor: "#0f172a", borderWidth: 1, borderColor: "#1e293b" },
+  statusOnline: { backgroundColor: colors.successSurface, borderWidth: 1, borderColor: colors.successBorder },
+  statusOffline: { backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.borderStrong },
   dot: { width: 7, height: 7, borderRadius: 4 },
-  statusPillText: { color: "#dbe7f5", fontSize: 12, fontWeight: "600" },
-  cost: { color: "#7dd3fc", fontSize: 12, fontWeight: "600" },
+  statusPillText: { color: colors.foreground, fontSize: 12, fontWeight: "600" },
+  cost: { color: colors.primary, fontSize: 12, fontWeight: "600" },
   card: {
     marginBottom: 12,
-    borderRadius: 20,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
@@ -312,17 +317,17 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 10,
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.surfaceSubtle,
     alignItems: "center",
     justifyContent: "center",
   },
-  typeText: { color: "#cbd5e1", fontSize: 11, fontWeight: "700" },
-  command: { flex: 1, color: "#f8fafc", fontSize: 14, fontWeight: "600" },
+  typeText: { color: colors.foreground, fontSize: 11, fontWeight: "700" },
+  command: { flex: 1, color: colors.foreground, fontSize: 14, fontWeight: "600" },
   cardMeta: { flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 32 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   status: { fontSize: 11, fontWeight: "600", textTransform: "capitalize" },
-  metaCost: { color: "#93a4bd", fontSize: 11 },
-  time: { color: "#6b7a92", fontSize: 11, marginLeft: "auto" },
+  metaCost: { color: colors.mutedForeground, fontSize: 11 },
+  time: { color: colors.mutedForeground, fontSize: 11, marginLeft: "auto" },
   empty: { flex: 1 },
   emptyContent: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8 },
   emptyIconWrap: {
@@ -330,11 +335,11 @@ const styles = StyleSheet.create({
     width: 64,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 20,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#1e293b",
-    backgroundColor: "#08111f",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
   },
-  emptyText: { color: "#f8fafc", fontSize: 16, fontWeight: "700" },
-  emptyHint: { color: "#93a4bd", fontSize: 13, textAlign: "center" },
+  emptyText: { color: colors.foreground, fontSize: 16, fontWeight: "700" },
+  emptyHint: { color: colors.mutedForeground, fontSize: 13, textAlign: "center" },
 });

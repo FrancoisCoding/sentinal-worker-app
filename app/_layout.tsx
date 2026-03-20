@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { getOrCreatePhoneId } from "@/lib/crypto";
 import { phoneIdAtom, pairedDeviceIdAtom, pairedDeviceNameAtom, isConnectedAtom } from "@/lib/store";
+import { colors } from "@/lib/theme";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
@@ -45,14 +46,14 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <PhoneIdLoader />
         <PairingStateLoader />
-        <StatusBar style="light" backgroundColor="#0a0a0a" />
+        <StatusBar style="light" backgroundColor={colors.background} />
         <Stack
           screenOptions={{
-            headerStyle: { backgroundColor: "#08111f" },
+            headerStyle: { backgroundColor: colors.surface },
             headerShadowVisible: false,
-            headerTintColor: "#f8fafc",
+            headerTintColor: colors.foreground,
             headerTitleStyle: { fontSize: 17, fontWeight: "600" },
-            contentStyle: { backgroundColor: "#020817" },
+            contentStyle: { backgroundColor: colors.background },
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

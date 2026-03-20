@@ -11,6 +11,7 @@ import { getClient } from "@/lib/supabase";
 import type { ApprovalRequest } from "@/lib/schemas";
 import { signPayload } from "@/lib/crypto";
 import { useEffect, useRef, useState } from "react";
+import { colors, radii } from "@/lib/theme";
 
 interface Props {
   approval: ApprovalRequest;
@@ -84,7 +85,7 @@ export function ApprovalSheet({ approval, onDismiss }: Props) {
 
           <View style={styles.header}>
             <View style={styles.iconWrap}>
-              <Ionicons name="shield-outline" size={20} color="#f59e0b" />
+              <Ionicons name="shield-outline" size={20} color={colors.warning} />
             </View>
             <View>
               <Text style={styles.title}>Approval required</Text>
@@ -119,20 +120,20 @@ export function ApprovalSheet({ approval, onDismiss }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: "rgba(2,8,23,0.76)", justifyContent: "flex-end" },
+  backdrop: { flex: 1, backgroundColor: "rgba(6,14,26,0.76)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: "#08111f",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.container,
+    borderTopRightRadius: radii.container,
     padding: 24,
     paddingBottom: 40,
     borderTopWidth: 1,
-    borderTopColor: "#162133",
+    borderTopColor: colors.border,
   },
   handle: {
     width: 36,
     height: 4,
-    backgroundColor: "#314158",
+    backgroundColor: colors.borderStrong,
     borderRadius: 2,
     alignSelf: "center",
     marginBottom: 20,
@@ -141,55 +142,55 @@ const styles = StyleSheet.create({
   iconWrap: {
     height: 42,
     width: 42,
-    borderRadius: 14,
+    borderRadius: radii.interactive,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(245,158,11,0.12)",
+    backgroundColor: colors.warningSurface,
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.22)",
+    borderColor: colors.warningBorder,
   },
-  title: { color: "#f8fafc", fontSize: 18, fontWeight: "700" },
-  subtitle: { color: "#93a4bd", fontSize: 13, lineHeight: 19 },
+  title: { color: colors.foreground, fontSize: 18, fontWeight: "700" },
+  subtitle: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
   commandBox: {
-    backgroundColor: "#050d19",
-    borderRadius: 16,
+    backgroundColor: colors.panel,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
     padding: 14,
     marginBottom: 20,
   },
-  command: { color: "#a3e635", fontSize: 13, fontFamily: "monospace" },
-  errorText: { color: "#fca5a5", fontSize: 13, lineHeight: 19, marginBottom: 12 },
+  command: { color: colors.success, fontSize: 13, fontFamily: "monospace" },
+  errorText: { color: colors.danger, fontSize: 13, lineHeight: 19, marginBottom: 12 },
   actions: { flexDirection: "row", gap: 12, marginBottom: 12 },
   rejectBtn: {
     flex: 1,
     paddingVertical: 13,
-    borderRadius: 14,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#334155",
-    backgroundColor: "#0f172a",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
     alignItems: "center",
   },
-  rejectText: { color: "#cbd5e1", fontSize: 14, fontWeight: "600" },
+  rejectText: { color: colors.foreground, fontSize: 14, fontWeight: "600" },
   approveBtn: {
     flex: 1,
     paddingVertical: 13,
-    borderRadius: 14,
-    backgroundColor: "rgba(37,99,235,0.2)",
+    borderRadius: radii.interactive,
+    backgroundColor: colors.primaryGlow,
     borderWidth: 1,
-    borderColor: "rgba(59,130,246,0.4)",
+    borderColor: colors.ring,
     alignItems: "center",
   },
-  approveText: { color: "#bfdbfe", fontSize: 14, fontWeight: "700" },
+  approveText: { color: colors.primaryStrong, fontSize: 14, fontWeight: "700" },
   alwaysBtn: {
     paddingVertical: 11,
-    borderRadius: 14,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#334155",
-    backgroundColor: "#0f172a",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
     alignItems: "center",
     marginBottom: 12,
   },
-  alwaysText: { color: "#cbd5e1", fontSize: 13, fontWeight: "600" },
-  timeout: { color: "#6b7a92", fontSize: 11, textAlign: "center" },
+  alwaysText: { color: colors.foreground, fontSize: 13, fontWeight: "600" },
+  timeout: { color: colors.mutedForeground, fontSize: 11, textAlign: "center" },
 });

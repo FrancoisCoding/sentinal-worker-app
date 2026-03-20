@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Pressable, Text } from "react-native";
 import { router } from "expo-router";
+import { colors, radii } from "@/lib/theme";
 
 export const unstable_settings = {
   initialRouteName: "settings",
@@ -12,20 +13,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: "#08111f",
-          borderTopColor: "#162133",
+          backgroundColor: colors.panel,
+          borderTopColor: colors.border,
           height: 74,
           paddingTop: 10,
           paddingBottom: 10,
         },
-        tabBarActiveTintColor: "#7dd3fc",
-        tabBarInactiveTintColor: "#6b7a92",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.mutedForeground,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
-        headerStyle: { backgroundColor: "#08111f" },
+        headerStyle: { backgroundColor: colors.surface },
         headerShadowVisible: false,
-        headerTintColor: "#f8fafc",
+        headerTintColor: colors.foreground,
         headerTitleStyle: { fontSize: 18, fontWeight: "600" },
-        sceneStyle: { backgroundColor: "#020817" },
+        sceneStyle: { backgroundColor: colors.background },
       }}
     >
       <Tabs.Screen
@@ -70,15 +71,15 @@ function PairButton() {
       onPress={() => router.push("/pair")}
       style={{
         marginRight: 16,
-        borderRadius: 999,
+        borderRadius: radii.pill,
         borderWidth: 1,
-        borderColor: "#1e293b",
-        backgroundColor: "#0f172a",
+        borderColor: colors.borderStrong,
+        backgroundColor: colors.surfaceSubtle,
         paddingHorizontal: 12,
         paddingVertical: 8,
       }}
     >
-      <Text style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>
+      <Text style={{ color: colors.foreground, fontSize: 12, fontWeight: "600" }}>
         Link device
       </Text>
     </Pressable>

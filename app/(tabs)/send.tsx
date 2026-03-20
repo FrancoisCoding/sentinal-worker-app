@@ -16,22 +16,30 @@ import { tasksAtom, pairedDeviceIdAtom, isConnectedAtom } from "@/lib/store";
 import { getClient } from "@/lib/supabase";
 import { signPayload } from "@/lib/crypto";
 import type { TaskType, Task } from "@/lib/schemas";
+import { colors, radii } from "@/lib/theme";
 
 const TASK_TYPES: { value: TaskType; label: string }[] = [
-  { value: "shell", label: "Shell" },
   { value: "claude", label: "Claude" },
   { value: "codex", label: "Codex" },
 ];
 
 const QUICK_ACTIONS = [
   { label: "Fix lint", command: "Fix all lint errors", type: "claude" as TaskType },
-  { label: "Run tests", command: "npm test", type: "shell" as TaskType },
+  { label: "Review failing test output", command: "Review the failing test output and propose a fix.", type: "claude" as TaskType },
   { label: "Analyze repo", command: "Analyze this repository and summarize key issues", type: "claude" as TaskType },
-  { label: "Git status", command: "git status", type: "shell" as TaskType },
+  { label: "Implement feature", command: "Implement the requested feature and explain the changes.", type: "codex" as TaskType },
 ];
 
+function upsertTask(previousTasks: Task[], nextTask: Task) {
+  const remainingTasks = previousTasks.filter((task) => task.id !== nextTask.id);
+  return [nextTask, ...remainingTasks].sort(
+    (leftTask, rightTask) =>
+      new Date(rightTask.created_at).getTime() - new Date(leftTask.created_at).getTime()
+  );
+}
+
 export default function SendScreen() {
-  const [taskType, setTaskType] = useState<TaskType>("shell");
+  const [taskType, setTaskType] = useState<TaskType>("claude");
   const [command, setCommand] = useState("");
   const [projectPath, setProjectPath] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,7 +81,7 @@ export default function SendScreen() {
         .single();
 
       if (error) throw error;
-      setTasks((prev) => [data as Task, ...prev]);
+      setTasks((previousTasks) => upsertTask(previousTasks, data as Task));
       setCommand("");
       Alert.alert("Sent", "Task queued on the desktop.");
     } catch (e: any) {
@@ -103,7 +111,7 @@ export default function SendScreen() {
           ]}
         >
           <View style={styles.lockedIconWrap}>
-            <Ionicons name="lock-closed-outline" size={26} color="#7dd3fc" />
+            <Ionicons name="lock-closed-outline" size={26} color={colors.primary} />
           </View>
           <Text style={styles.lockedTitle}>Run task unlocks after device linking</Text>
           <Text style={styles.lockedText}>
@@ -143,7 +151,7 @@ export default function SendScreen() {
       >
         <Text style={styles.heroTitle}>Run secure work on your linked desktop</Text>
         <Text style={styles.heroText}>
-          Send a shell command or agent prompt through the trusted desktop connection, then review
+          Send a Claude Code or Codex task through the trusted desktop connection, then review
           progress from the operations feed.
         </Text>
       </Animated.View>
@@ -172,11 +180,11 @@ export default function SendScreen() {
           value={command}
           onChangeText={setCommand}
           placeholder={
-            taskType === "shell"
-              ? "Run a shell command, for example pnpm test"
-              : "Describe the work to run on the linked desktop"
+            taskType === "claude"
+              ? "Ask Claude Code to inspect or change the linked desktop project"
+              : "Ask Codex to complete a coding task on the linked desktop"
           }
-          placeholderTextColor="#5b6b85"
+          placeholderTextColor={colors.mutedForeground}
           multiline
           numberOfLines={4}
           autoCapitalize="none"
@@ -191,7 +199,7 @@ export default function SendScreen() {
           value={projectPath}
           onChangeText={setProjectPath}
           placeholder="Optional local project path"
-          placeholderTextColor="#5b6b85"
+          placeholderTextColor={colors.mutedForeground}
           autoCapitalize="none"
           autoCorrect={false}
         />
@@ -229,15 +237,15 @@ export default function SendScreen() {
 const styles = StyleSheet.create({
   lockedContainer: {
     flex: 1,
-    backgroundColor: "#020817",
+    backgroundColor: colors.background,
     padding: 16,
     justifyContent: "center",
   },
   lockedCard: {
-    borderRadius: 28,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 24,
     alignItems: "center",
     gap: 14,
@@ -245,31 +253,31 @@ const styles = StyleSheet.create({
   lockedIconWrap: {
     height: 72,
     width: 72,
-    borderRadius: 24,
+    borderRadius: radii.container,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderStrong,
   },
-  lockedTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700", textAlign: "center" },
-  lockedText: { color: "#93a4bd", fontSize: 14, lineHeight: 21, textAlign: "center" },
-  container: { flex: 1, backgroundColor: "#020817", padding: 16 },
+  lockedTitle: { color: colors.foreground, fontSize: 20, fontWeight: "700", textAlign: "center" },
+  lockedText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21, textAlign: "center" },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
   content: { paddingBottom: 32 },
   hero: {
     marginBottom: 24,
-    borderRadius: 24,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 18,
     gap: 8,
   },
-  heroTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700" },
-  heroText: { color: "#93a4bd", fontSize: 14, lineHeight: 21 },
+  heroTitle: { color: colors.foreground, fontSize: 20, fontWeight: "700" },
+  heroText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
   section: { marginBottom: 24 },
   label: {
-    color: "#7dd3fc",
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "700",
     marginBottom: 10,
@@ -280,28 +288,28 @@ const styles = StyleSheet.create({
   typeBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#1e293b",
-    backgroundColor: "#0f172a",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
   },
-  typeBtnActive: { backgroundColor: "#1d4ed8", borderColor: "#2563eb" },
-  typeBtnText: { color: "#93a4bd", fontSize: 13, fontWeight: "600" },
-  typeBtnTextActive: { color: "#fff" },
+  typeBtnActive: { backgroundColor: colors.primary, borderColor: colors.primaryStrong },
+  typeBtnText: { color: colors.mutedForeground, fontSize: 13, fontWeight: "600" },
+  typeBtnTextActive: { color: colors.primaryForeground },
   input: {
-    backgroundColor: "#08111f",
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#162133",
-    borderRadius: 18,
+    borderColor: colors.border,
+    borderRadius: radii.container,
     padding: 14,
-    color: "#e5e7eb",
+    color: colors.foreground,
     fontSize: 14,
     lineHeight: 20,
     textAlignVertical: "top",
   },
   submitBtn: {
-    backgroundColor: "#2563eb",
-    borderRadius: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radii.interactive,
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 32,
@@ -311,21 +319,21 @@ const styles = StyleSheet.create({
     minWidth: 220,
     paddingHorizontal: 24,
     paddingVertical: 14,
-    borderRadius: 16,
-    backgroundColor: "#2563eb",
+    borderRadius: radii.interactive,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   submitBtnDisabled: { opacity: 0.4 },
-  submitText: { color: "#eff6ff", fontSize: 14, fontWeight: "700" },
+  submitText: { color: colors.primaryForeground, fontSize: 14, fontWeight: "700" },
   quickGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   quickBtn: {
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: "#08111f",
-    borderRadius: 14,
+    backgroundColor: colors.surface,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
   },
-  quickText: { color: "#cbd5e1", fontSize: 13, fontWeight: "600" },
+  quickText: { color: colors.foreground, fontSize: 13, fontWeight: "600" },
 });

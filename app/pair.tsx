@@ -16,6 +16,7 @@ import { getClient } from "@/lib/supabase";
 import { getOrCreatePhoneId, getPublicKey } from "@/lib/crypto";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
+import { colors, radii } from "@/lib/theme";
 
 const PAIRED_DEVICE_KEY = "sentinal_paired_device_id";
 const PAIRED_NAME_KEY = "sentinal_paired_device_name";
@@ -223,7 +224,7 @@ export default function PairScreen() {
           ]}
         >
           <View style={styles.permissionIconWrap}>
-            <Ionicons name="scan-outline" size={28} color="#7dd3fc" />
+            <Ionicons name="scan-outline" size={28} color={colors.primary} />
           </View>
           <Text style={styles.permissionTitle}>Scan the trusted desktop QR code</Text>
           <Text style={styles.permText}>
@@ -269,7 +270,7 @@ export default function PairScreen() {
         />
         <View style={styles.sheet}>
           <View style={styles.sheetBadge}>
-            <Ionicons name="shield-checkmark-outline" size={16} color="#7dd3fc" />
+            <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
             <Text style={styles.sheetBadgeText}>Trusted device linking</Text>
           </View>
           <Text style={styles.sheetTitle}>Scan the desktop QR code</Text>
@@ -280,7 +281,7 @@ export default function PairScreen() {
           </Text>
           {feedback ? <Text style={styles.feedback}>{feedback}</Text> : null}
         </View>
-        {pairing && <ActivityIndicator color="#7dd3fc" style={{ marginTop: 18 }} />}
+        {pairing && <ActivityIndicator color={colors.primary} style={{ marginTop: 18 }} />}
         <TouchableOpacity style={styles.retryBtn} onPress={() => {
           setFeedback(null);
           setScanned(false);
@@ -299,17 +300,17 @@ const styles = StyleSheet.create({
   camera: { flex: 1 },
   permissionContainer: {
     flex: 1,
-    backgroundColor: "#020817",
+    backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
   },
   permissionCard: {
     width: "100%",
-    borderRadius: 28,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 24,
     alignItems: "center",
     gap: 14,
@@ -317,31 +318,31 @@ const styles = StyleSheet.create({
   permissionIconWrap: {
     height: 72,
     width: 72,
-    borderRadius: 24,
+    borderRadius: radii.container,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#0f172a",
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderStrong,
   },
-  permissionTitle: { color: "#f8fafc", fontSize: 21, fontWeight: "700", textAlign: "center" },
-  permText: { color: "#93a4bd", fontSize: 14, lineHeight: 21, textAlign: "center" },
-  permBtn: { backgroundColor: "#2563eb", paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16 },
-  permBtnText: { color: "#eff6ff", fontSize: 14, fontWeight: "700" },
+  permissionTitle: { color: colors.foreground, fontSize: 21, fontWeight: "700", textAlign: "center" },
+  permText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21, textAlign: "center" },
+  permBtn: { backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 14, borderRadius: radii.interactive },
+  permBtnText: { color: colors.primaryForeground, fontSize: 14, fontWeight: "700" },
   overlay: {
     position: "absolute",
     inset: 0,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(2,8,23,0.5)",
+    backgroundColor: "rgba(6,14,26,0.5)",
   },
   finder: {
     width: 220,
     height: 220,
     borderWidth: 2,
-    borderColor: "#7dd3fc",
-    backgroundColor: "rgba(8,17,31,0.08)",
-    borderRadius: 24,
+    borderColor: colors.primary,
+    backgroundColor: "rgba(10,19,34,0.08)",
+    borderRadius: radii.container,
     marginBottom: 24,
   },
   sheet: {
@@ -354,18 +355,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    borderRadius: 999,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: "#16324d",
-    backgroundColor: "rgba(8,17,31,0.92)",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  sheetBadgeText: { color: "#cbd5e1", fontSize: 12, fontWeight: "600" },
-  sheetTitle: { color: "#f8fafc", fontSize: 22, fontWeight: "700", textAlign: "center" },
-  hint: { color: "#dbe7f5", fontSize: 14, lineHeight: 21, textAlign: "center", paddingHorizontal: 28 },
+  sheetBadgeText: { color: colors.foreground, fontSize: 12, fontWeight: "600" },
+  sheetTitle: { color: colors.foreground, fontSize: 22, fontWeight: "700", textAlign: "center" },
+  hint: { color: colors.foreground, fontSize: 14, lineHeight: 21, textAlign: "center", paddingHorizontal: 28 },
   feedback: {
-    color: "#7dd3fc",
+    color: colors.primary,
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",
@@ -375,10 +376,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "rgba(8,17,31,0.92)",
-    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderStrong,
   },
-  retryText: { color: "#dbe7f5", fontSize: 13, fontWeight: "600" },
+  retryText: { color: colors.foreground, fontSize: 13, fontWeight: "600" },
 });

@@ -6,6 +6,7 @@ import { tasksAtom, taskLogsAtom } from "@/lib/store";
 import { useEffect, useRef } from "react";
 import { supabase, isConfigured } from "@/lib/supabase";
 import { useSetAtom } from "jotai";
+import { colors, radii } from "@/lib/theme";
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -87,7 +88,7 @@ export default function TaskDetailScreen() {
         ]}
       >
         <View style={styles.heroBadge}>
-          <Ionicons name="terminal-outline" size={16} color="#7dd3fc" />
+          <Ionicons name="terminal-outline" size={16} color={colors.primary} />
           <Text style={styles.heroBadgeText}>{task.type.toUpperCase()}</Text>
         </View>
         <Text style={styles.heroTitle}>Task detail</Text>
@@ -141,17 +142,17 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020817" },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, paddingBottom: 32 },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#020817" },
-  notFound: { color: "#93a4bd", fontSize: 14 },
+  centered: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
+  notFound: { color: colors.mutedForeground, fontSize: 14 },
   hero: {
     marginBottom: 16,
     gap: 10,
-    borderRadius: 24,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 18,
   },
   heroBadge: {
@@ -159,61 +160,61 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: "#16324d",
-    backgroundColor: "#0d1b2d",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  heroBadgeText: { color: "#cbd5e1", fontSize: 12, fontWeight: "700" },
-  heroTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700" },
-  heroText: { color: "#93a4bd", fontSize: 14, lineHeight: 21 },
+  heroBadgeText: { color: colors.foreground, fontSize: 12, fontWeight: "700" },
+  heroTitle: { color: colors.foreground, fontSize: 20, fontWeight: "700" },
+  heroText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
   meta: {
-    backgroundColor: "#08111f",
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
     padding: 16,
     gap: 10,
     marginBottom: 12,
   },
   metaRow: { flexDirection: "row", justifyContent: "space-between" },
-  metaLabel: { color: "#93a4bd", fontSize: 12, fontWeight: "600" },
-  metaValue: { color: "#f8fafc", fontSize: 12, maxWidth: "65%" },
+  metaLabel: { color: colors.mutedForeground, fontSize: 12, fontWeight: "600" },
+  metaValue: { color: colors.foreground, fontSize: 12, maxWidth: "65%" },
   commandBox: {
-    backgroundColor: "#08111f",
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 12,
   },
   sectionLabel: {
-    color: "#7dd3fc",
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 1.2,
     marginBottom: 10,
   },
-  command: { color: "#e5e7eb", fontSize: 13, fontFamily: "monospace", lineHeight: 20 },
+  command: { color: colors.foreground, fontSize: 13, fontFamily: "monospace", lineHeight: 20 },
   logBox: {
-    backgroundColor: "#050d19",
-    borderRadius: 20,
+    backgroundColor: colors.panel,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
     padding: 16,
     minHeight: 200,
   },
   logHeader: {
-    color: "#7dd3fc",
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "700",
     marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 1.2,
   },
-  logEmpty: { color: "#93a4bd", fontSize: 13, lineHeight: 20 },
-  logLine: { color: "#a3e635", fontSize: 11, fontFamily: "monospace", lineHeight: 18 },
+  logEmpty: { color: colors.mutedForeground, fontSize: 13, lineHeight: 20 },
+  logLine: { color: colors.success, fontSize: 11, fontFamily: "monospace", lineHeight: 18 },
 });

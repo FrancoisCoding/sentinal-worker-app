@@ -15,6 +15,7 @@ import { pairedDeviceIdAtom, pairedDeviceNameAtom, phoneIdAtom, isConnectedAtom 
 import { getClient } from "@/lib/supabase";
 import { getPublicKey } from "@/lib/crypto";
 import { router } from "expo-router";
+import { colors, radii } from "@/lib/theme";
 
 export default function SettingsScreen() {
   const [phoneId] = useAtom(phoneIdAtom);
@@ -90,7 +91,7 @@ export default function SettingsScreen() {
           <Ionicons
             name={isConnected ? "shield-checkmark-outline" : "shield-outline"}
             size={16}
-            color="#7dd3fc"
+            color={colors.primary}
           />
           <Text style={styles.heroBadgeText}>
             {isConnected ? "Trusted desktop linked" : "Link one trusted desktop"}
@@ -105,7 +106,7 @@ export default function SettingsScreen() {
             : "Scan the desktop QR code to create a signed one-to-one device link before you run tasks or approve actions."}
         </Text>
         <Pressable style={styles.primaryButton} onPress={() => router.push("/pair")}>
-          <Ionicons name="scan-outline" size={18} color="#eff6ff" />
+          <Ionicons name="scan-outline" size={18} color={colors.primaryForeground} />
           <Text style={styles.primaryButtonText}>
             {isConnected ? "Relink trusted device" : "Scan desktop QR code"}
           </Text>
@@ -119,12 +120,12 @@ export default function SettingsScreen() {
           <InfoRow label="Status" value={isConnected ? "Linked" : "Awaiting link"} />
           {deviceId && <InfoRow label="Desktop ID" value={deviceId} mono />}
         </View>
-        <Pressable style={styles.unlinkButton} onPress={handleUnlink}>
-          <Ionicons name="close-circle-outline" size={16} color="#f87171" />
-          <Text style={styles.unlinkButtonText}>
-            {isConnected ? "Unlink desktop" : "Clear pairing data"}
-          </Text>
-        </Pressable>
+        {isConnected ? (
+          <Pressable style={styles.unlinkButton} onPress={handleUnlink}>
+            <Ionicons name="close-circle-outline" size={16} color={colors.danger} />
+            <Text style={styles.unlinkButtonText}>Unlink desktop</Text>
+          </Pressable>
+        ) : null}
       </Section>
 
       {!isConnected && (
@@ -195,14 +196,14 @@ function StepItem({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#020817", padding: 16 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
   content: { paddingBottom: 32 },
   hero: {
     marginBottom: 24,
-    borderRadius: 24,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 18,
     gap: 12,
   },
@@ -211,44 +212,44 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     alignSelf: "flex-start",
-    borderRadius: 999,
+    borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: "#16324d",
-    backgroundColor: "#0d1b2d",
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surfaceSubtle,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  heroBadgeText: { color: "#cbd5e1", fontSize: 12, fontWeight: "600" },
+  heroBadgeText: { color: colors.foreground, fontSize: 12, fontWeight: "600" },
   primaryButton: {
     marginTop: 4,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderRadius: 16,
-    backgroundColor: "#2563eb",
+    borderRadius: radii.interactive,
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 18,
   },
-  primaryButtonText: { color: "#eff6ff", fontSize: 14, fontWeight: "700" },
+  primaryButtonText: { color: colors.primaryForeground, fontSize: 14, fontWeight: "700" },
   unlinkButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderRadius: 16,
+    borderRadius: radii.interactive,
     borderWidth: 1,
-    borderColor: "#3b1a1a",
-    backgroundColor: "#1a0a0a",
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerSurface,
     paddingVertical: 12,
     paddingHorizontal: 18,
   },
-  unlinkButtonText: { color: "#f87171", fontSize: 13, fontWeight: "600" },
-  heroTitle: { color: "#f8fafc", fontSize: 20, fontWeight: "700" },
-  heroText: { color: "#93a4bd", fontSize: 14, lineHeight: 21 },
+  unlinkButtonText: { color: colors.danger, fontSize: 13, fontWeight: "600" },
+  heroTitle: { color: colors.foreground, fontSize: 20, fontWeight: "700" },
+  heroText: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
   section: { marginBottom: 32 },
   sectionTitle: {
-    color: "#7dd3fc",
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
@@ -256,22 +257,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoBox: {
-    backgroundColor: "#08111f",
-    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 12,
     gap: 12,
   },
   infoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
-  infoLabel: { color: "#93a4bd", fontSize: 12, fontWeight: "600" },
-  infoValue: { color: "#f8fafc", fontSize: 12, maxWidth: "60%" },
+  infoLabel: { color: colors.mutedForeground, fontSize: 12, fontWeight: "600" },
+  infoValue: { color: colors.foreground, fontSize: 12, maxWidth: "60%" },
   stepCard: {
-    borderRadius: 20,
+    borderRadius: radii.container,
     borderWidth: 1,
-    borderColor: "#162133",
-    backgroundColor: "#08111f",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 16,
     gap: 16,
   },
@@ -281,13 +282,13 @@ const styles = StyleSheet.create({
     width: 28,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 999,
-    backgroundColor: "#0f172a",
+    borderRadius: radii.pill,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#1e293b",
+    borderColor: colors.borderStrong,
   },
-  stepIndexText: { color: "#7dd3fc", fontSize: 12, fontWeight: "700" },
+  stepIndexText: { color: colors.primary, fontSize: 12, fontWeight: "700" },
   stepCopy: { flex: 1, gap: 4 },
-  stepTitle: { color: "#f8fafc", fontSize: 14, fontWeight: "700" },
-  stepDescription: { color: "#93a4bd", fontSize: 13, lineHeight: 19 },
+  stepTitle: { color: colors.foreground, fontSize: 14, fontWeight: "700" },
+  stepDescription: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
 });
